@@ -1,16 +1,22 @@
 import operator
 import argparse
 
+ENCODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
 
 class frequency:
-    def __init__(self):
+    def __init__(self, caseinsensitive=True):
+        self.caseinsensitive = caseinsensitive
         self.freq = {}
 
     def add_key(self, key):
-        if key in self.freq:
-            self.freq[key] += 1
-        else:
-            self.freq[key] = 1
+        if self.caseinsensitive:
+            key = key.upper()
+        if key in ENCODE_CHARS:
+            if key in self.freq:
+                self.freq[key] += 1
+            else:
+                self.freq[key] = 1
 
     def freq_dict(self):
         return self.freq
@@ -19,7 +25,7 @@ class frequency:
         for c in text:
             self.add_key(c)
 
-    def freq_list(self, norm_to=50, sort='freq'):
+    def freq_list(self, norm_to=50, caseinsensitive=True, sort='freq'):
         max_freq = 0
 
         for c in self.freq:
@@ -39,11 +45,22 @@ class frequency:
 
         norm = []
         for c, f in sorted_list:
-            norm.append((c, f * norm_to // max_freq))
+            if norm_to == 0:
+                norm.append((c, f))
+            else:
+                norm.append((c, f * norm_to // max_freq))
         return norm
 
-    def plot_freq(self):
-        fl = self.freq_list()
+    def chars(self):
+        characters = []
+        freqs = self.freq_list()
+        for c, f in freqs:
+            characters.append(c)
+        return characters
+
+
+    def plot_freq(self, norm_to=50):
+        fl = self.freq_list(norm_to=norm_to)
         outtext = ''
         max_freq = 0
         for c, f in fl:
@@ -72,6 +89,15 @@ def main():
     parser.add_argument("-o",
                         "--outfile",
                         help="output file")
+    parser.add_argument('-n',
+                        "--norm",
+                        type=int,
+                        default=0,
+                        help="Normalise frequencies to...  0 = don't normalise")
+    parser.add_argument('-c',
+                        '--caseinsensitive',
+                        default=True,
+                        action='store_true')
 
     # Parse the commandline arguments
     args = parser.parse_args()
@@ -79,7 +105,7 @@ def main():
     intext = ''
     outtext = ''
 
-    freq = frequency()
+    freq = frequency(caseinsensitive = args.caseinsensitive)
 
     print("Mode: " + args.mode)
     if args.infile is not None:
@@ -90,9 +116,9 @@ def main():
     if args.outfile is not None:
         print("Outfile: " + args.outfile)
     if args.mode == "char":
-        outtext = str(freq.freq_list())
+        outtext = str(freq.freq_list(norm_to=args.norm))
     elif args.mode == "hist":
-        outtext = freq.plot_freq()
+        outtext = freq.plot_freq(norm_to=args.norm)
 
     if args.outfile is not None:
         with open(args.outfile, 'w') as f:
