@@ -85,11 +85,21 @@ class wp_dict:
         if wc in self.wordcodes:
             pattern = self.wordcodes[wc].codematch(code)
             hits = self.wordcodes[wc].find(pattern)
-            return hits
+            codehits = []
+            # We want upper and lower chase character in the code
+            # to be treated as different characters for this part
+            # of the matching process, so get a new code that
+            # is case sensitive
+            wc = wordcode(code)
+            for hit in hits:
+                hitcode = wordcode(hit)
+                if hitcode == wc:
+                    codehits.append(hit)
+            return codehits
         else:
             return None
 
-    def load(self, dictionaryfile):
+    def load(self, dictionaryfile='dictionary.txt'):
         with open(dictionaryfile, 'r') as f:
             for line in f:
                 for word in line.split():
