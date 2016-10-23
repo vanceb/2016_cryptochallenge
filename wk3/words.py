@@ -77,11 +77,6 @@ class wp_dict:
             pattern = self.wordcodes[wc].codematch(code)
             hits = self.wordcodes[wc].find(pattern)
             codehits = []
-            # We want upper and lower chase character in the code
-            # to be treated as different characters for this part
-            # of the matching process, so get a new code that
-            # is case sensitive
-            wc = wordcode(code)
             for hit in hits:
                 hitcode = wordcode(hit)
                 if hitcode == wc:
