@@ -18,14 +18,12 @@ def wordcode(word):
 
 
 class word_pattern:
-    def __init__(self, caseinsensitive=True):
+    def __init__(self):
         self.words = []
         self.wc = None
-        self.caseinsensitive = caseinsensitive
 
     def add(self, word):
-        if self.caseinsensitive:
-            word = word.upper()
+        word = word.upper()
         code = wordcode(word)
         # Check to see that the word we are adding has the same code as others
         if self.wc is None:
@@ -35,8 +33,7 @@ class word_pattern:
         self.words.append(word)
 
     def find(self, pattern):
-        if self.caseinsensitive:
-            pattern = pattern.upper()
+        pattern = pattern.upper()
         regex = re.compile(pattern)
         hits = []
         for word in self.words:
@@ -53,21 +50,18 @@ class word_pattern:
             if c.isupper():
                 pattern += '.'
             else:
-                pattern += c
+                pattern += c.upper()
         return pattern
 
 
 class wp_dict:
-    def __init__(self, caseinsensitive=True):
+    def __init__(self):
         self.wordcodes = {}
-        self.caseinsensitive = caseinsensitive
 
     def add(self, word):
-        if self.caseinsensitive:
-            word = word.upper()
-        code = wordcode(word)
+        code = wordcode(word.upper())
         if code not in self.wordcodes:
-            wc = word_pattern(caseinsensitive=self.caseinsensitive)
+            wc = word_pattern()
             self.wordcodes[code] = wc
         self.wordcodes[code].add(word)
 
@@ -78,10 +72,7 @@ class wp_dict:
     # This allows us to replace code characters with lower case once
     # we have identified a match
     def find(self, code):
-        if self.caseinsensitive:
-            wc = wordcode(code.upper())
-        else:
-            wc = wordcode(code)
+        wc = wordcode(code)
         if wc in self.wordcodes:
             pattern = self.wordcodes[wc].codematch(code)
             hits = self.wordcodes[wc].find(pattern)
