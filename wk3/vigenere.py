@@ -53,9 +53,12 @@ def main():
     # Create a substitution cipher solver
     vigenere = solve.Substitution()
     # Make an initial solution
-    outtext = vigenere.solve(ciphertext)
+    #outtext = vigenere.solve(ciphertext)
+    vigenere.ciphertext = ciphertext
+    outtext = vigenere.solve2()
     # Now we have a better idea of the likely words let's have a second go
-    outtext = vigenere.solve(outtext)
+    #outtext = vigenere.solve(outtext)
+    outtext = vigenere.solve2()
 
     outtext += "\nCipher Freqs: " + str(cipher_freq)
     outtext += "\nKey: "
@@ -63,6 +66,8 @@ def main():
     outtext += "\nSolve:\n"
     for c in vigenere.cipher_chars:
         outtext += c + ": " + str(vigenere.cipher_chars[c]) + "\n"
+    outtext += "\n"
+    vigenere.solve3()
 
     if args.outfile is not None:
         with open(args.outfile, 'w') as f:
