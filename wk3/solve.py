@@ -209,9 +209,27 @@ class Substitution:
                         if self.key[c] != self.cipher_chars[c][0]:
                             raise Exception("Solved for 2 different keys"
                                             " for the same cipher character")
-                    self.key[c] = self.cipher_chars[c][0]
+                    #self.key[c] = self.cipher_chars[c][0]
+                    try:
+                        self.add_key(c,self.cipher_chars[c][0])
+                    except:
+                        print("Problem writing: Cipherchar: " + c +
+                              " Plainchar: " + self.cipher_chars[c])
         return self.plaintext
 
+
+    def add_key(self, cipherchar, plainchar):
+        if self.key[cipherchar] is None:
+            for c in self.key:
+                if self.key[c] == plainchar:
+                    if c != cipherchar:
+                        print("Duplicate")
+                        raise Exception("Plaintext character already found")
+            self.key[cipherchar] = plainchar
+        else:
+            if self.key[cipherchar] != plainchar:
+                print("Overwrite")
+                raise Exception("Tried to overwrite a previously allocated key")
 
     def reset(self):
         # Prepare to solve for the key
