@@ -1,15 +1,19 @@
+import argparse
 import words
+
 
 class Wordsolve:
 
-    def __init__(self, encodechars='ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
+    def __init__(self,
+                 encodechars='ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                 dictionary="dictionary.txt"):
         # Decide which characters in the ciphertext we are interested in
         self.encodechars = encodechars.upper()
         # Reset the ciphertext
         self.__ciphertext = ''
         # Load the pattern matching dictionary
         self.dictionary = words.wp_dict()
-        self.dictionary.load()
+        self.dictionary.load(dictionary=dictionary)
         self.reset()
 
     @property
@@ -109,17 +113,43 @@ class Wordsolve:
 
 
 def main():
-    ciphertext = ''
-    with open("WK2_CIPHERTEXT2.txt", 'r') as f:
-        for line in f:
-            ciphertext += line
+    # Set up the commandline arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i",
+                        "--infile",
+                        help="ciphertext input file")
+    parser.add_argument("-o",
+                        "--outfile",
+                        help="output file")
+    parser.add_argument("-d",
+                        "--dictionary",
+                        default='dictionary.txt',
+                        help="dictionary file")
 
-    w = Wordsolve()
+    # Parse the commandline arguments
+    args = parser.parse_args()
+
+    outtext = ''
+    ciphertext = ''
+
+    # Read in the ciphertext`
+    if args.infile is not None:
+        with open(args.infile, 'r') as f:
+            for line in f:
+                ciphertext += line
+
+    w = Wordsolve(dictionary=args.dictionary)
     w.ciphertext = ciphertext
     w.solve()
-    print(w.plaintext + "\n")
-    print(str(w.key) + "\n")
-    print(str(w.poss_keys) + "\n")
+    outtext += w.plaintext + "\n"
+    outtext += str(w.key) + "\n"
+    outtext += str(w.poss_keys) + "\n"
+
+    if args.outfile is not None:
+        with open(args.outfile, 'w') as f:
+            f.write(outtext)
+    else:
+        print(outtext)
 
 if __name__ == '__main__':
     main()

@@ -85,8 +85,8 @@ class wp_dict:
         else:
             return None
 
-    def load(self, dictionaryfile='dictionary.txt'):
-        with open(dictionaryfile, 'r') as f:
+    def load(self, dictionary='dictionary.txt'):
+        with open(dictionary, 'r') as f:
             for line in f:
                 for word in line.split():
                     self.add(word.strip())
