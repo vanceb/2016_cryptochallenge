@@ -176,7 +176,7 @@ class Substitution:
     # Solve3 tries a word by word solution rahter than a whole solution
     # From testing this seems to get a few characters wrong...
     # This is dictionary dependent...  dynamix vs dynamic
-    def solve3(self, most_matches=10, reverse=False):
+    def solve3(self, most_matches=1, reverse=False):
         #self.reset_cipher_chars()
         safertext = self.__safertext(self.plaintext)
         words = safertext.split()
@@ -198,27 +198,28 @@ class Substitution:
                         # go through the possibilities we have for the solution
                         for match in solutions:
                             if matchword[i].isupper():
-                                if match[i] in self.cipher_chars[matchword[i]]:
-                                    ok += match[i]
+                                if match[i].upper() in self.cipher_chars[matchword[i]]:
+                                    ok += match[i].upper()
                         self.cipher_chars[matchword[i]] = ok
         # Check to see whether we have solved any cipher characters
         # Store them in the key if we have
             for c in self.cipher_chars:
                 if len(self.cipher_chars[c]) == 1:
                     if self.key[c]:
-                        if self.key[c] != self.cipher_chars[c][0]:
+                        if self.key[c].upper() != self.cipher_chars[c][0].upper():
+                            print("Problem Solved '" + c + "' for different keys: '" + self.key[c] + "', '" + self.cipher_chars[c][0] + "'" )
                             raise Exception("Solved for 2 different keys"
                                             " for the same cipher character")
-                    #self.key[c] = self.cipher_chars[c][0]
                     try:
-                        self.add_key(c,self.cipher_chars[c][0])
+                        self.add_key(c, self.cipher_chars[c][0])
                     except:
                         print("Problem writing: Cipherchar: " + c +
                               " Plainchar: " + self.cipher_chars[c])
         return self.plaintext
 
-
     def add_key(self, cipherchar, plainchar):
+        cipherchar = cipherchar.upper()
+        plainchar = plainchar.lower()
         if self.key[cipherchar] is None:
             for c in self.key:
                 if self.key[c] == plainchar:
@@ -245,7 +246,7 @@ class Substitution:
             if self.key[c] is None:
                 self.cipher_chars[c] = self.encode_chars
             else:
-                self.cipher_chars[c] = self.key[c]
+                self.cipher_chars[c] = self.key[c].lower()
 
     @property
     def ciphertext(self):
