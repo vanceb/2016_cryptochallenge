@@ -65,36 +65,48 @@ class Wordsolve:
             self.key[c] = None
             self.poss_keys[c] = self.encodechars.lower()
 
-    def solve(self, max_matches=1, reverse=False):
-        # Split the safertext into words and reverse the order if desired
-        words = self.__safertext().split()
-        if reverse:
-            words = reversed(words)
-        # Loop over each word
-        for word in words:
-            # Look for potential matches
-            matches = self.dictionary.find(word)
-            # If the number of matches for this word is less we want
-            if matches:
-                if len(matches) <= max_matches:
-                    # Loop over each characters
-                    for i in range(len(word)):
-                        ok = ''
-                        # If the character is uppercase...
-                        if word[i].isupper():
-                            # then this is a cipher character so...
-                            # Loop over each potential match
-                            for match in matches:
-                                if match[i].lower() in self.poss_keys[word[i]]:
-                                    # add a possible solution character to ok
-                                    if match[i].lower() not in ok:
-                                        ok += match[i].lower()
-                            # Put the possible solutions back into the
-                            # possible keys
-                            self.poss_keys[word[i]] = ok
-            for c in self.poss_keys:
-                if len(self.poss_keys[c]) == 1:
-                    self.key[c] = self.poss_keys[c][0]
+    def solve(self, max_loops=3, max_matches=1, reverse=False):
+        loops = 0
+        solved = False
+        while loops < max_loops and not solved:
+            loops += 1
+            # Split the safertext into words and reverse the order if desired
+            words = self.__safertext().split()
+            if reverse:
+                words = reversed(words)
+            # Loop over each word
+            for word in words:
+                # Look for potential matches
+                matches = self.dictionary.find(word)
+                # If the number of matches for this word is less we want
+                if matches:
+                    if len(matches) <= max_matches:
+                        # Loop over each characters
+                        for i in range(len(word)):
+                            ok = ''
+                            # If the character is uppercase...
+                            if word[i].isupper():
+                                # then this is a cipher character so...
+                                # Loop over each potential match
+                                for match in matches:
+                                    if match[i].lower() in self.poss_keys[word[i]]:
+                                        # add a possible solution character
+                                        # to ok
+                                        if match[i].lower() not in ok:
+                                            ok += match[i].lower()
+                                # Put the possible solutions back into the
+                                # possible keys
+                                self.poss_keys[word[i]] = ok
+                for c in self.poss_keys:
+                    if len(self.poss_keys[c]) == 1:
+                        self.key[c] = self.poss_keys[c][0]
+
+                # Check to see whether we have solved all keys
+                solved = True
+                for c in self.key:
+                    if self.key[c] is None:
+                        solved = False
+
 
 def main():
     ciphertext = ''
@@ -104,8 +116,6 @@ def main():
 
     w = Wordsolve()
     w.ciphertext = ciphertext
-    w.solve()
-    w.solve()
     w.solve()
     print(w.plaintext + "\n")
     print(str(w.key) + "\n")
