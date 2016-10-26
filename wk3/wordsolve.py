@@ -87,9 +87,11 @@ class Wordsolve:
                             for match in matches:
                                 if match[i].lower() in self.poss_keys[word[i]]:
                                     # add a possible solution character to ok
-                                    ok += match[i].lower()
-                        # Put the possible solutions back into the possible keys
-                        self.poss_keys[word[i]] = ok
+                                    if match[i].lower() not in ok:
+                                        ok += match[i].lower()
+                            # Put the possible solutions back into the
+                            # possible keys
+                            self.poss_keys[word[i]] = ok
             for c in self.poss_keys:
                 if len(self.poss_keys[c]) == 1:
                     self.key[c] = self.poss_keys[c][0]
@@ -102,12 +104,9 @@ def main():
 
     w = Wordsolve()
     w.ciphertext = ciphertext
-    #w.solve(reverse=True)
-    w.solve(max_matches=2)
-    w.solve(max_matches=2)
-    w.solve(max_matches=2)
-    #w.solve()
-    #w.solve()
+    w.solve()
+    w.solve()
+    w.solve()
     print(w.plaintext + "\n")
     print(str(w.key) + "\n")
     print(str(w.poss_keys) + "\n")
