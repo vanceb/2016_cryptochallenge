@@ -37,6 +37,18 @@ class Key:
             # remaining character equal to the key
             self.set(cipherchar, self.__possibles[cipherchar][0])
 
+    def decipher(self, ciphertext):
+        plaintext = ''
+        for c in ciphertext:
+            if c in self.encodechars:
+                if self.__decode[c] is not None:
+                    plaintext += self.__decode[c]
+                else:
+                    plaintext += c
+            else:
+                plaintext += c
+        return plaintext
+
     @property
     def key(self):
         return self.__decode
