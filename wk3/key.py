@@ -40,7 +40,8 @@ class Key:
 
     def __update_history(self, cipherchar, plainchar, reason):
         self.__history.append((cipherchar, plainchar, reason))
-        self.__key_history.append((self.key, self.__possibles))
+        # get copies of the current state using the dict() function
+        self.__key_history.append((dict(self.__decode), dict(self.__possibles)))
         self.__history_pointer += 1
 
     def set_string(self, ciphertext, plaintext, reason):
