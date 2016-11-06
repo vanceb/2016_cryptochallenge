@@ -89,31 +89,39 @@ def main():
     if args.stripciphertext:
         ciphertext = stripciphertext(ciphertext)
 
+    # Initialise the key
+    k = key.Key()
+
     # Do the frequency analysis
     freq = frequency.frequency()
     freq.add(ciphertext)
     freqlist = freq.freq_list()
     print(str(freqlist))
 
+    # Assume e is the most frequent and t is the second most frequent letters
+    c, n = freqlist[0]
+    k.set(c, 'e', 'Frequency')
+    e = c
+    c, n = freqlist[1]
+    k.set(c, 't', "Frequency")
+    t = c
+    # Now we know 't' and 'e', try to find the h from 'the'
+    c, n = freq.h_spotter(t, e, ciphertext)
+    k.set(c, 'h', 'h spotter')
+
+    # get the partially decrypted ciphertext
+    pd = k.decipher(ciphertext)
+
     # Use the cribs to try and get a start on the cracking
     crib = Crib()
     crib.load(args.crib)
     frequent_hits, hits = crib.search(ciphertext)
 
-    # Let's make a stab at the key
-    # Initialise the key
-    k = key.Key()
-
-    # Assume e is the most frequent and t is the second most frequent letters
-    c, n = freqlist[0]
-    k.set(c, 'e')
-    c, n = freqlist[1]
-    k.set(c, 't')
     for cribword in frequent_hits:
         for match in frequent_hits[cribword]:
             score = frequent_hits[cribword][match] / len(hits[cribword])
-            if score > 0.8:
-                k.set_string(match, cribword)
+            if score > 0.1:
+                k.set_string(match, cribword, "Cribword: " + cribword)
 
     outtext += str(hits) + '\n'
     outtext += str(frequent_hits) + '\n'
@@ -124,6 +132,7 @@ def main():
             outtext += '\t' + match + ":\t " + str(score) + '\n'
     outtext += '\n\n' + k.decipher(ciphertext) + '\n\n'
     outtext += '\n' + str(k.key) + '\n'
+    outtext += '\n' + str(k.history) + '\n'
 
     if args.outfile is not None:
         with open(args.outfile, 'w') as f:

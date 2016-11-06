@@ -58,6 +58,21 @@ class frequency:
             characters.append(c)
         return characters
 
+    def h_spotter(self, t, e, text):
+        length = len(text)
+        h = {}
+        for i in range(length):
+            if i < length - 2:
+                if text[i] == t and text[i+2] == e:
+                    poss_h = text[i+1]
+                    if poss_h in h:
+                        h[poss_h] += 1
+                    else:
+                        h[poss_h] = 1
+        sorted_list = sorted(h.items(),
+                             key=operator.itemgetter(1),
+                             reverse=True)
+        return sorted_list[0]
 
     def plot_freq(self, norm_to=50):
         fl = self.freq_list(norm_to=norm_to)
