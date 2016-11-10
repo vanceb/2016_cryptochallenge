@@ -160,6 +160,10 @@ def main2():
                         "--crib",
                         default='cribwords.txt',
                         help="cribwords file")
+    parser.add_argument("-r",
+                        "--reverse",
+                        action="store_true",
+                        help="Reverse the ciphertext before decryption")
     parser.add_argument("-s",
                         "--stripciphertext",
                         action="store_true",
@@ -183,6 +187,10 @@ def main2():
             for line in f:
                 ciphertext += line
 
+    # Reverse the ciphertext if wanted
+    if args.reverse:
+        ciphertext = ciphertext[::-1]
+
     # Strip if requested
     if args.stripciphertext:
         ciphertext = stripciphertext(ciphertext)
@@ -197,15 +205,15 @@ def main2():
     print(str(freqlist))
 
     # Assume e is the most frequent and t is the second most frequent letters
-    c, n = freqlist[0]
-    k.set(c, 'e', 'Frequency')
-    e = c
-    c, n = freqlist[1]
-    k.set(c, 't', "Frequency")
-    t = c
+    #c, n = freqlist[0]
+    #k.set(c, 'e', 'Frequency')
+    #e = c
+    #c, n = freqlist[1]
+    #k.set(c, 't', "Frequency")
+    #t = c
     # Now we know 't' and 'e', try to find the h from 'the'
-    c, n = freq.h_spotter(t, e, ciphertext)
-    k.set(c, 'h', 'h spotter')
+    #c, n = freq.h_spotter(t, e, ciphertext)
+    #k.set(c, 'h', 'h spotter')
 
     # Use the cribs to try and get a start on the cracking
     crib = Crib()
@@ -243,6 +251,9 @@ def main2():
                 break
             elif cmd == 'history':
                 print(k.history)
+            elif cmd == 'crib':
+                print('\n' + str(hits))
+                print('\n' + str(frequent_hits))
         print('\n' + k.decipher(ciphertext))
 
     outtext = ''
