@@ -48,6 +48,11 @@ def main():
                         type=int,
                         help="Modulus key - pick every xth bit",
                         )
+    parser.add_argument("-u",
+                        "--decrypt",
+                        action='store_true',
+                        help="Try to decrypt",
+                        )
 
     # Parse the commandline arguments
     args = parser.parse_args()
@@ -69,10 +74,20 @@ def main():
     if args.stripciphertext:
         ciphertext = stripciphertext(ciphertext)
 
-    outtext = ''
-    for i in range(len(ciphertext)):
-        j = (i * args.modulus) % len(ciphertext)
-        outtext += ciphertext[j]
+    outtext = str(len(ciphertext)) + '\n\n'
+
+    if args.decrypt:
+        n = len(ciphertext) // args.modulus
+        chunks = []
+        for i in range(args.modulus):
+            chunks.append(ciphertext[i*n:(i+1)*n])
+        for i in range(len(chunks[0])):
+            for chunk in chunks:
+                outtext += chunk[i]
+    else:
+        for i in range(len(ciphertext)):
+            j = (i * args.modulus) % len(ciphertext)
+            outtext += ciphertext[j]
 
     if args.outfile is not None:
         with open(args.outfile, 'w') as f:

@@ -1,5 +1,5 @@
 import argparse
-import sys
+import re
 
 import words
 import frequency
@@ -18,6 +18,7 @@ class Crib:
             for line in f:
                 self.cribwords.append(line.strip())
 
+    # Search for cribwords in text using wordcode only
     def search(self, text):
         hits = {}
         frequent_hits = {}
@@ -40,6 +41,36 @@ class Crib:
                         hits[crib].append(testword)
                     else:
                         hits[crib] = [testword]
+        return frequent_hits, hits
+
+    # Search for cribwords in text using both codeword patterns and
+    # wordcodes.  Allows search across partially decoded ciphertext
+    # with CIPHERTEXT as uppercase and plaintext as lowercase
+    # Exact matches against the plaintext parts and any character match
+    # against the uppercase CIPHERTEXT
+    def search2(self, text):
+        hits = {}
+        frequent_hits = {}
+        for i in range(len(text)):
+            for crib in self.cribwords:
+                testword = text[i:i+len(crib)]
+                test_pattern = words.codematch(testword).lower()
+                test_matcher = re.compile(test_pattern)
+                if test_matcher.fullmatch(crib):
+                    if words.wordcode(testword) == words.wordcode(crib):
+                        if crib in hits:
+                            if testword in hits[crib]:
+                                # We have hit this sequence already
+                                if crib in frequent_hits:
+                                    if testword in frequent_hits[crib]:
+                                        frequent_hits[crib][testword] += 1
+                                    else:
+                                        frequent_hits[crib][testword] = 2
+                                else:
+                                    frequent_hits[crib] = {testword: 2}
+                            hits[crib].append(testword)
+                        else:
+                            hits[crib] = [testword]
         return frequent_hits, hits
 
 
@@ -117,7 +148,7 @@ def main():
     # Use the cribs to try and get a start on the cracking
     crib = Crib()
     crib.load(args.crib)
-    frequent_hits, hits = crib.search(ciphertext)
+    frequent_hits, hits = crib.search2(ciphertext)
 
     for cribword in frequent_hits:
         for match in frequent_hits[cribword]:
@@ -141,6 +172,11 @@ def main():
             f.write(outtext)
     else:
         print(outtext)
+
+
+def help():
+    print('key, freq, history, crib, quit')
+
 
 def main2():
     # Set up the commandline arguments
@@ -218,7 +254,7 @@ def main2():
     # Use the cribs to try and get a start on the cracking
     crib = Crib()
     crib.load(args.crib)
-    frequent_hits, hits = crib.search(ciphertext)
+    frequent_hits, hits = crib.search2(ciphertext)
 
     for cribword in frequent_hits:
         for match in frequent_hits[cribword]:
@@ -229,48 +265,57 @@ def main2():
     # get the partially decrypted ciphertext
     print(k.decipher(ciphertext))
 
-    # Start an interactive loops
-    while True:
-        cmd = input("\n:> ")
-        # Check to see whether we entered an integer
-        try:
-            # If so then lets use it to
-            # go back in time...
-            i = int(cmd)
-            k.history = i
-        except:
-            if len(cmd) == 1:
-                if cmd.upper() in ENCODE_CHARS:
-                    p = input("Plaintext :> ")
-                    k.set(cmd, p, 'User')
-            elif cmd == 'key':
-                print('\n' + str(k.key) + '\n')
-            elif cmd == 'freq':
-                print(str(freqlist))
-            elif cmd == 'quit':
-                break
-            elif cmd == 'history':
-                print(k.history)
-            elif cmd == 'crib':
-                print('\n' + str(hits))
-                print('\n' + str(frequent_hits))
-        print('\n' + k.decipher(ciphertext))
+    # put the loop in a try block so that if we hit an Exception
+    # we will save the state of the key and ciphertext...
+    try:
+        # Start an interactive loops
+        while True:
+            cmd = input("\n:> ")
+            # Check to see whether we entered an integer
+            try:
+                # If so then lets use it to
+                # go back in time...
+                i = int(cmd)
+                k.history = i
+            except:
+                if len(cmd) == 1:
+                    if cmd.upper() in ENCODE_CHARS:
+                        p = input("Plaintext :> ")
+                        k.set(cmd, p, 'User')
+                    elif cmd == '?':
+                        help()
+                elif cmd == 'key':
+                    print('\n' + str(k.key) + '\n')
+                elif cmd == 'freq':
+                    print(str(freqlist))
+                elif cmd == 'quit':
+                    break
+                elif cmd == 'history':
+                    print(k.history)
+                elif cmd == 'crib':
+                    frequent_hits, hits = crib.search2(k.decipher(ciphertext))
+                    print('\n' + str(hits))
+                    print('\n' + str(frequent_hits))
+                elif cmd == 'help':
+                    help()
+            print('\n' + k.decipher(ciphertext))
+    finally:
 
-    outtext = ''
-    for cribword in frequent_hits:
-        outtext += cribword + '\n'
-        for match in frequent_hits[cribword]:
-            score = frequent_hits[cribword][match]/len(hits[cribword])
-            outtext += '\t' + match + ":\t " + str(score) + '\n'
-    outtext += '\n\n' + k.decipher(ciphertext) + '\n\n'
-    outtext += '\n' + str(k.key) + '\n'
-    outtext += '\n' + str(k.history) + '\n'
+        outtext = ''
+        for cribword in frequent_hits:
+            outtext += cribword + '\n'
+            for match in frequent_hits[cribword]:
+                score = frequent_hits[cribword][match]/len(hits[cribword])
+                outtext += '\t' + match + ":\t " + str(score) + '\n'
+        outtext += '\n\n' + k.decipher(ciphertext) + '\n\n'
+        outtext += '\n' + str(k.key) + '\n'
+        outtext += '\n' + str(k.history) + '\n'
 
-    if args.outfile is not None:
-        with open(args.outfile, 'w') as f:
-            f.write(outtext)
-    else:
-        print(outtext)
+        if args.outfile is not None:
+            with open(args.outfile, 'w') as f:
+                f.write(outtext)
+        else:
+            print(outtext)
 
 if __name__ == '__main__':
     main2()

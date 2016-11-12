@@ -34,7 +34,7 @@ def wordcode(word):
 # lowercase characters are taken as literal characters
 # This provides functionality for finding matches for
 # partially solved ciphertext
-def codematch(self, code):
+def codematch(code):
     pattern = ''
     for c in code:
         if c.isupper():
